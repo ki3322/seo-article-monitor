@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+import sys
+import os
+
+# 確保可以 import 專案模組
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from config import RSS_SOURCES, SCRAPE_SOURCES, TWITTER_ACCOUNTS
+from src.state import StateManager
+from src.notifier import TelegramNotifier
+from src.monitors.rss_monitor import get_rss_items, get_twitter_items
+from src.monitors.web_scraper import get_scraped_items
+
+
+def main():
+    print("=== Pokemon Monitor 開始執行 ===\n")
+
+    state = StateManager()
+    notifier = TelegramNotifier()
+    new_items_count = 0
+
+    # 檢查 Telegram 設定
+    if not notifier.is_configured():
+        print("[Warning] Telegram 未設定，將只顯示結果不發送通知\n")
+
+    # 1. 監控 RSS 來源
+    print("📡 檢查 RSS 來源...")
+    for source in RSS_SOURCES:
+        print(f"  - {source['name']}", end=" ")
+        items = get_rss_items(source)
+
+        if not items:
+            print("(無法取得)")
+            continue
+
+        new_items = []
+        for item in items:
+            if not state.is_seen(source["name"], item.id):
+                new_items.append(item)
+                state.mark_seen(source["name"], item.id)
+
+        print(f"(發現 {len(new_items)} 則新內容)")
+
+        for item in new_items:
+            notifier.notify_new_item(
+                title=item.title,
+                link=item.link,
+                source=item.source,
+                source_type=item.source_type,
+            )
+            new_items_count += 1
+
+    # 2. 監控網頁爬蟲來源
+    print("\n🌐 檢查網頁來源...")
+    for source in SCRAPE_SOURCES:
+        print(f"  - {source['name']}", end=" ")
+        items = get_scraped_items(source)
+
+        if not items:
+            print("(無法取得)")
+            continue
+
+        new_items = []
+        for item in items:
+            if not state.is_seen(source["name"], item.id):
+                new_items.append(item)
+                state.mark_seen(source["name"], item.id)
+
+        print(f"(發現 {len(new_items)} 則新內容)")
+
+        for item in new_items:
+            notifier.notify_new_item(
+                title=item.title,
+                link=item.link,
+                source=item.source,
+                source_type=item.source_type,
+            )
+            new_items_count += 1
+
+    # 3. 監控 Twitter 帳號
+    print("\n🐦 檢查 Twitter 帳號...")
+    for username in TWITTER_ACCOUNTS:
+        print(f"  - @{username}", end=" ")
+        items = get_twitter_items(username)
+
+        if not items:
+            print("(無法取得)")
+            continue
+
+        source_id = f"twitter_{username}"
+        new_items = []
+        for item in items:
+            if not state.is_seen(source_id, item.id):
+                new_items.append(item)
+                state.mark_seen(source_id, item.id)
+
+        print(f"(發現 {len(new_items)} 則新推文)")
+
+        for item in new_items:
+            notifier.notify_new_item(
+                title=item.title,
+                link=item.link,
+                source=item.source,
+                source_type=item.source_type,
+            )
+            new_items_count += 1
+
+    # 儲存狀態
+    state.save()
+
+    print(f"\n=== 執行完成，共發送 {new_items_count} 則通知 ===")
+    return new_items_count
+
+
+if __name__ == "__main__":
+    main()
