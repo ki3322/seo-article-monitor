@@ -1,13 +1,18 @@
 import requests
 from bs4 import BeautifulSoup
 import hashlib
+import re
 from typing import List, Dict, Optional
 from dataclasses import dataclass
+from datetime import datetime, timezone, timedelta
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config import REQUEST_TIMEOUT, USER_AGENT
+
+# 只通知這個時間範圍內的文章（小時）
+MAX_AGE_HOURS = 24
 
 
 @dataclass
@@ -33,31 +38,30 @@ def fetch_page(url: str) -> Optional[BeautifulSoup]:
         )
         response.raise_for_status()
         return BeautifulSoup(response.text, "html.parser")
-    except Exception:
+    except Exception as e:
+        print(f"    [Error] Failed to fetch {url}: {e}")
         return None
 
 
-def scrape_pokemon_center_online(source: Dict) -> List[ScrapedItem]:
+def scrape_serebii(source: Dict) -> List[ScrapedItem]:
+    """爬取 Serebii.net 新聞"""
     items = []
     soup = fetch_page(source["url"])
 
     if soup is None:
         return items
 
-    # Pokemon Center Online 新聞頁面結構
-    # 嘗試尋找新聞文章連結
-    for article in soup.select("article, .news-item, .news-list li, a[href*='news']")[:10]:
-        link_tag = article if article.name == "a" else article.find("a")
+    # Serebii 新聞格式: <h2><a href="...">標題</a></h2>
+    for h2 in soup.find_all("h2", limit=10):
+        link_tag = h2.find("a")
         if not link_tag or not link_tag.get("href"):
             continue
 
         link = link_tag.get("href", "")
         if not link.startswith("http"):
-            link = "https://www.pokemoncenter-online.com" + link
+            link = "https://www.serebii.net" + link
 
-        title_tag = article.find(["h2", "h3", "h4", ".title", "p"])
-        title = title_tag.get_text(strip=True) if title_tag else link_tag.get_text(strip=True)
-
+        title = link_tag.get_text(strip=True)
         if not title:
             continue
 
@@ -72,27 +76,90 @@ def scrape_pokemon_center_online(source: Dict) -> List[ScrapedItem]:
     return items
 
 
-def scrape_pokemon_infomation(source: Dict) -> List[ScrapedItem]:
+def scrape_pokemon_center_online(source: Dict) -> List[ScrapedItem]:
+    """爬取 Pokemon Center Online 新聞"""
     items = []
     soup = fetch_page(source["url"])
 
     if soup is None:
         return items
 
-    # Pokemon Information 網站結構
-    for article in soup.select("article, .post, .entry, a[href*='post'], .news-item")[:10]:
-        link_tag = article if article.name == "a" else article.find("a")
-        if not link_tag or not link_tag.get("href"):
+    # 嘗試多種選擇器來找新聞
+    selectors = [
+        "a[href*='/news/']",
+        ".news-item a",
+        ".information a",
+        "article a",
+    ]
+
+    seen_links = set()
+    for selector in selectors:
+        for link_tag in soup.select(selector)[:15]:
+            link = link_tag.get("href", "")
+            if not link or link in seen_links:
+                continue
+
+            if not link.startswith("http"):
+                link = "https://www.pokemoncenter-online.com" + link
+
+            # 過濾非新聞連結
+            if "/news/" not in link and "/information/" not in link:
+                continue
+
+            seen_links.add(link)
+            title = link_tag.get_text(strip=True)
+            if not title or len(title) < 5:
+                continue
+
+            item_id = generate_item_id(link, title)
+            items.append(ScrapedItem(
+                id=item_id,
+                title=title[:100] + "..." if len(title) > 100 else title,
+                link=link,
+                source=source["name"],
+            ))
+
+            if len(items) >= 10:
+                break
+        if len(items) >= 10:
+            break
+
+    return items
+
+
+def scrape_pokemon_infomation(source: Dict) -> List[ScrapedItem]:
+    """爬取 Pokemon Information 網站"""
+    items = []
+    soup = fetch_page(source["url"])
+
+    if soup is None:
+        return items
+
+    # 尋找文章連結 (排除導航連結)
+    seen_links = set()
+    for link_tag in soup.find_all("a", href=True):
+        link = link_tag.get("href", "")
+
+        # 只處理文章連結
+        if not link.startswith("https://pokemon-infomation.com/"):
             continue
 
-        link = link_tag.get("href", "")
-        if not link.startswith("http"):
-            link = "https://pokemon-infomation.com" + link
+        # 排除分類頁和特殊頁面
+        if "/category/" in link or "/contact/" in link or "/privacy" in link or "/profile/" in link:
+            continue
 
-        title_tag = article.find(["h2", "h3", "h4", ".entry-title", ".post-title"])
-        title = title_tag.get_text(strip=True) if title_tag else link_tag.get_text(strip=True)
+        # 排除首頁
+        if link == "https://pokemon-infomation.com/" or link == "https://pokemon-infomation.com":
+            continue
 
-        if not title:
+        if link in seen_links:
+            continue
+
+        seen_links.add(link)
+        title = link_tag.get_text(strip=True)
+
+        # 過濾太短或是導航文字
+        if not title or len(title) < 10:
             continue
 
         item_id = generate_item_id(link, title)
@@ -102,6 +169,9 @@ def scrape_pokemon_infomation(source: Dict) -> List[ScrapedItem]:
             link=link,
             source=source["name"],
         ))
+
+        if len(items) >= 10:
+            break
 
     return items
 
@@ -109,7 +179,9 @@ def scrape_pokemon_infomation(source: Dict) -> List[ScrapedItem]:
 def get_scraped_items(source: Dict) -> List[ScrapedItem]:
     url = source.get("url", "")
 
-    if "pokemoncenter-online.com" in url:
+    if "serebii.net" in url:
+        return scrape_serebii(source)
+    elif "pokemoncenter-online.com" in url:
         return scrape_pokemon_center_online(source)
     elif "pokemon-infomation.com" in url:
         return scrape_pokemon_infomation(source)

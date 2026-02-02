@@ -18,18 +18,18 @@ RSS_SOURCES = [
         "url": "https://pokemongohub.net/feed/",
         "type": "website",
     },
-    {
-        "name": "Serebii.net",
-        "url": "https://www.serebii.net/index_rss.xml",
-        "type": "website",
-    },
 ]
 
 # 網頁爬蟲來源 (無 RSS 的網站)
 SCRAPE_SOURCES = [
     {
+        "name": "Serebii.net",
+        "url": "https://www.serebii.net/index2.shtml",
+        "type": "website",
+    },
+    {
         "name": "Pokemon Center Online",
-        "url": "https://www.pokemoncenter-online.com/news/",
+        "url": "https://www.pokemoncenter-online.com/",
         "type": "website",
     },
     {
@@ -40,15 +40,17 @@ SCRAPE_SOURCES = [
 ]
 
 # Twitter 帳號 (透過 Nitter RSS)
+# 注意: Nitter 實例目前大多已失效，Twitter 監控功能暫時停用
+# 如需啟用，請取消下方註解並確認有可用的 Nitter 實例
 TWITTER_ACCOUNTS = [
-    "PokemonGoApp",
-    "Zabi_pokeka",
-    "pokecamatomeru",
-    "UniteVids",
-    "pokerapidinfo",
-    "pokepoke_GW",
-    "pokemongoappko",
-    "snkrdunk_akiba",
+    # "PokemonGoApp",
+    # "Zabi_pokeka",
+    # "pokecamatomeru",
+    # "UniteVids",
+    # "pokerapidinfo",
+    # "pokepoke_GW",
+    # "pokemongoappko",
+    # "snkrdunk_akiba",
 ]
 
 # 狀態檔案路徑
