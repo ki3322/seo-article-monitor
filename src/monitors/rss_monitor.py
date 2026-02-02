@@ -12,6 +12,7 @@ from config import RSSHUB_INSTANCE, REQUEST_TIMEOUT, USER_AGENT
 
 # 只通知這個時間範圍內的文章（小時）
 MAX_AGE_HOURS = 24
+TWITTER_MAX_AGE_HOURS = 1  # Twitter 推文只監控 1 小時內
 
 
 @dataclass
@@ -96,8 +97,8 @@ def get_twitter_items(username: str) -> List[FeedItem]:
         return items
 
     for entry in feed.entries[:10]:
-        # 過濾掉超過 24 小時的推文
-        if not is_recent(entry):
+        # 過濾掉超過 1 小時的推文
+        if not is_recent(entry, max_age_hours=TWITTER_MAX_AGE_HOURS):
             continue
 
         title = entry.get("title", "")
