@@ -27,10 +27,14 @@ def main():
     print("📡 檢查 RSS 來源...")
     for source in RSS_SOURCES:
         print(f"  - {source['name']}", end=" ")
-        items = get_rss_items(source)
+        items, success = get_rss_items(source)
+
+        if not success:
+            print("(連接失敗)")
+            continue
 
         if not items:
-            print("(無法取得)")
+            print("(24小時內無新文章)")
             continue
 
         new_items = []

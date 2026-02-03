@@ -58,12 +58,20 @@ def fetch_rss(url: str) -> Optional[feedparser.FeedParserDict]:
         return None
 
 
-def get_rss_items(source: Dict) -> List[FeedItem]:
+def get_rss_items(source: Dict) -> tuple[List[FeedItem], bool]:
+    """取得 RSS 來源的文章
+
+    Returns:
+        tuple: (items, success) - items 是文章列表，success 表示是否成功連接
+    """
     items = []
     feed = fetch_rss(source["url"])
 
-    if feed is None or not feed.entries:
-        return items
+    if feed is None:
+        return items, False  # 連接失敗
+
+    if not feed.entries:
+        return items, True  # 連接成功但沒有文章
 
     for entry in feed.entries[:10]:  # 只處理最新 10 筆
         # 過濾掉超過 24 小時的文章
@@ -82,7 +90,7 @@ def get_rss_items(source: Dict) -> List[FeedItem]:
             source_type=source.get("type", "website"),
         ))
 
-    return items
+    return items, True
 
 
 def get_twitter_items(username: str) -> tuple[List[FeedItem], bool]:
