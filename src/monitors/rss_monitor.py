@@ -85,16 +85,23 @@ def get_rss_items(source: Dict) -> List[FeedItem]:
     return items
 
 
-def get_twitter_items(username: str) -> List[FeedItem]:
-    """透過 RSSHub 取得 Twitter/X 帳號的推文"""
+def get_twitter_items(username: str) -> tuple[List[FeedItem], bool]:
+    """透過 RSSHub 取得 Twitter/X 帳號的推文
+
+    Returns:
+        tuple: (items, success) - items 是推文列表，success 表示是否成功連接
+    """
     items = []
 
     # 使用 RSSHub 的 Twitter 路由
     url = f"{RSSHUB_INSTANCE}/twitter/user/{username}"
     feed = fetch_rss(url)
 
-    if feed is None or not feed.entries:
-        return items
+    if feed is None:
+        return items, False  # 連接失敗
+
+    if not feed.entries:
+        return items, True  # 連接成功但沒有推文
 
     for entry in feed.entries[:10]:
         # 過濾掉超過 1 小時的推文
@@ -120,4 +127,4 @@ def get_twitter_items(username: str) -> List[FeedItem]:
             source_type="twitter",
         ))
 
-    return items
+    return items, True

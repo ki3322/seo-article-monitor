@@ -82,11 +82,15 @@ def main():
     twitter_failures = []
     for username in TWITTER_ACCOUNTS:
         print(f"  - @{username}", end=" ")
-        items = get_twitter_items(username)
+        items, success = get_twitter_items(username)
+
+        if not success:
+            print("(連接失敗)")
+            twitter_failures.append(username)
+            continue
 
         if not items:
-            print("(無法取得)")
-            twitter_failures.append(username)
+            print("(1小時內無新推文)")
             continue
 
         source_id = f"twitter_{username}"
