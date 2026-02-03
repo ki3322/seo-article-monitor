@@ -176,6 +176,41 @@ def scrape_pokemon_infomation(source: Dict) -> List[ScrapedItem]:
     return items
 
 
+def scrape_pokebeach(source: Dict) -> List[ScrapedItem]:
+    """爬取 PokeBeach 新聞"""
+    items = []
+    soup = fetch_page(source["url"])
+
+    if soup is None:
+        return items
+
+    # PokeBeach 格式: <article> 內含 <h2 class="entry-title"><a href="...">標題</a></h2>
+    for article in soup.find_all("article", limit=15):
+        h2 = article.find("h2", class_="entry-title")
+        if not h2:
+            continue
+
+        link_tag = h2.find("a")
+        if not link_tag or not link_tag.get("href"):
+            continue
+
+        link = link_tag.get("href", "")
+        title = link_tag.get_text(strip=True)
+
+        if not title:
+            continue
+
+        item_id = generate_item_id(link, title)
+        items.append(ScrapedItem(
+            id=item_id,
+            title=title[:100] + "..." if len(title) > 100 else title,
+            link=link,
+            source=source["name"],
+        ))
+
+    return items
+
+
 def get_scraped_items(source: Dict) -> List[ScrapedItem]:
     url = source.get("url", "")
 
@@ -185,5 +220,7 @@ def get_scraped_items(source: Dict) -> List[ScrapedItem]:
         return scrape_pokemon_center_online(source)
     elif "pokemon-infomation.com" in url:
         return scrape_pokemon_infomation(source)
+    elif "pokebeach.com" in url:
+        return scrape_pokebeach(source)
 
     return []

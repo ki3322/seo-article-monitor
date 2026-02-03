@@ -31,6 +31,11 @@ SCRAPE_SOURCES = [
         "url": "https://pokemon-infomation.com/",
         "type": "website",
     },
+    {
+        "name": "PokeBeach",
+        "url": "https://www.pokebeach.com/",
+        "type": "website",
+    },
 ]
 
 # Twitter/X 帳號 (透過 RSSHub)
