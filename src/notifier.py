@@ -2,9 +2,19 @@ import requests
 from typing import Union
 import sys
 import os
+from deep_translator import GoogleTranslator
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, REQUEST_TIMEOUT
+
+
+def translate_to_chinese(text: str) -> str:
+    """將英文標題翻譯成繁體中文"""
+    try:
+        translated = GoogleTranslator(source="auto", target="zh-TW").translate(text)
+        return translated if translated else text
+    except Exception:
+        return text
 
 
 class TelegramNotifier:
@@ -52,10 +62,13 @@ class TelegramNotifier:
             emoji = "📰"
             type_label = "文章"
 
+        title_zh = translate_to_chinese(title)
+
         message = (
             f"{emoji} <b>新{type_label}</b>\n\n"
             f"📌 <b>{self._escape_html(source)}</b>\n"
-            f"{self._escape_html(title)}\n\n"
+            f"{self._escape_html(title_zh)}\n"
+            f"<i>{self._escape_html(title)}</i>\n\n"
             f"🔗 {link}"
         )
 

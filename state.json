@@ -1,4 +1,25 @@
 {
   "last_seen": {},
-  "seen_items": {}
+  "seen_items": {
+    "Search Engine Journal": [
+      "35b7aa7bebc49f22",
+      "f64dca42a0ff1ed9",
+      "235c4ced62a293f5",
+      "f3d8af26d0e155f0",
+      "75766e75f41b0587",
+      "59bccc969ac815ca"
+    ],
+    "Search Engine Land": [
+      "1e35f7f839a8e5f5",
+      "245780d8ae951342",
+      "3e63fcb1767e6109",
+      "ff099eb9e9d4237b",
+      "f939ba27408ba620",
+      "6884dcf97f07e5e4",
+      "a35808179039a453",
+      "f41bd518d6decf30",
+      "d8e712b1a973e4eb",
+      "b785b90ebeb462b8"
+    ]
+  }
 }
