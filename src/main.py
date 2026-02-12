@@ -94,7 +94,7 @@ def main():
             continue
 
         if not items:
-            print("(1小時內無新推文)")
+            print("(24小時內無新推文)")
             continue
 
         source_id = f"twitter_{username}"

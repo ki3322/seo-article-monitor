@@ -12,7 +12,7 @@ from config import RSSHUB_INSTANCE, REQUEST_TIMEOUT, USER_AGENT
 
 # 只通知這個時間範圍內的文章（小時）
 MAX_AGE_HOURS = 24
-TWITTER_MAX_AGE_HOURS = 1  # Twitter 推文只監控 1 小時內
+TWITTER_MAX_AGE_HOURS = 24  # Twitter 推文監控 24 小時內
 
 
 @dataclass
