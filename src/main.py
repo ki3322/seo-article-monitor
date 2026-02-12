@@ -13,7 +13,7 @@ from src.monitors.web_scraper import get_scraped_items
 
 
 def main():
-    print("=== Pokemon Monitor 開始執行 ===\n")
+    print("=== SEO Article Monitor 開始執行 ===\n")
 
     state = StateManager()
     notifier = TelegramNotifier()
