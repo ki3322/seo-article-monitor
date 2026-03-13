@@ -2,12 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Search Engine Journal": [
-      "ffe9eaa5bdf4817c",
-      "a661494c88666366",
-      "10cb278005611cab",
-      "0d4499071c0696ca",
-      "addc9308b8c01da7",
-      "41fe9f22e4d17269",
       "8f7793bfebee2db2",
       "4572f6906a0809a8",
       "78684a1efd5f7917",
@@ -101,7 +95,13 @@
       "46c07d87cd576063",
       "59fdc929e5e400a7",
       "caa538304cf936f5",
-      "4fd34ad439086be7"
+      "4fd34ad439086be7",
+      "d8f839c71c2a2a2b",
+      "6c213248fd8d2949",
+      "e4d982177b00048c",
+      "8cc6d8387edea4dc",
+      "68c9e60c6043d248",
+      "0d4fde677e18f975"
     ],
     "Search Engine Land": [
       "1e35f7f839a8e5f5",
@@ -114,6 +114,9 @@
       "f41bd518d6decf30",
       "d8e712b1a973e4eb",
       "b785b90ebeb462b8"
+    ],
+    "twitter_randfish": [
+      "9b071886c629097a"
     ]
   }
 }
